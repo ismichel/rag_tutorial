@@ -1,0 +1,52 @@
+# Requirements for rag_tutorial_final.ipynb
+#
+# This notebook is designed to run on:
+#   - NVIDIA GPU (CUDA) - fastest
+#   - Apple Silicon (MPS) - good speed
+#   - CPU only - works everywhere, slower for the LLM step
+#
+# Setup (recommended): create a fresh virtual environment, then install:
+#
+#   python -m venv .venv
+#   source .venv/bin/activate          # macOS / Linux
+#   .venv\Scripts\activate             # Windows
+#   pip install -U pip
+#   pip install -r requirements.txt
+#
+# Notes on PyTorch:
+#   - On macOS / Windows-without-NVIDIA, plain `pip install torch` installs the CPU build
+#     (with MPS support included on Apple Silicon Macs). No extra flags needed.
+#   - On Linux with a CUDA GPU, plain `pip install torch` will pick up the CUDA build automatically.
+#   - If you need a specific CUDA version, see https://pytorch.org/get-started/locally/
+#
+# Notes on Python version:
+#   - Python 3.10 - 3.12 are recommended.
+#   - Python 3.13 is too new for some of these wheels at time of writing; if `pip install torch`
+#     fails with "no matching distribution", create a new env with `conda create -n rag python=3.11`
+#     (or 3.12) and try again.
+
+# --- Core ML stack ---
+# torch is pinned to 2.2.2 because that's the last PyTorch release with macOS x86_64 (Intel Mac) wheels.
+# If you're on Apple Silicon (arm64) or Linux/CUDA, you can safely change this back to `torch>=2.2`.
+torch==2.2.2
+# transformers is upper-bounded because >=4.50 uses torch.library.custom_op features that aren't
+# available in torch 2.2/2.4. If you upgrade torch to 2.5+, you can relax this to `transformers>=4.45`.
+transformers>=4.45,<4.50
+sentence-transformers>=3.0,<4.0
+accelerate>=0.33
+huggingface_hub>=0.24
+
+# --- PDF + NLP utilities ---
+PyMuPDF>=1.24          # extracts text from the PDF (imported as `fitz`)
+spacy>=3.7             # sentence splitting (used by the chunking cells)
+
+# --- Data + plotting helpers used in the notebook ---
+pandas>=2.0
+numpy>=1.26
+requests>=2.31
+tqdm>=4.66
+psutil>=5.9            # used to read system RAM in the hardware-check cell when no NVIDIA GPU is present
+
+# --- Optional, GPU-only ---
+# bitsandbytes>=0.43   # only needed if you set `use_quantization_config = True`. Linux/CUDA only; do NOT install on Windows/Mac.
+# flash-attn>=2.5      # only needed on NVIDIA Ampere+ GPUs (compute capability >= 8.0). The notebook falls back to sdpa automatically if missing.
